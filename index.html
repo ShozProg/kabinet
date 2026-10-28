@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кабинет Контрагента | Цифровая платформа зернового терминала</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; color: #0f172a; overflow-x: hidden; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<!-- ВЕРХНЯЯ ПАНЕЛЬ ВНЕШНЕГО B2B-САЙТА КЛИЕНТА -->
+<header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50 shadow-md">
+  <div class="max-w-7xl mx-auto px-5 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3.5">
+      <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-base tracking-tighter shadow-inner">
+        ЗТ
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-base tracking-tight">ПОРТАЛ КОНТРАГЕНТА</span>
+          <span class="text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold px-2 py-0.5 rounded-full">
+            Защищенное соединение ЭДО
+          </span>
+        </div>
+        <div class="text-xs text-slate-400">Управление поставками, тайм-слотами, реестром ТТН и актами взвешивания</div>
+      </div>
+    </div>
+
+    <!-- Профиль авторизованного юрлица -->
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3.5 py-2 text-xs">
+        <div class="font-bold text-white" id="clientOrgTitle">ООО «Поставщик-Агро № 1»</div>
+        <div class="text-[11px] text-slate-400 mono" id="clientOrgReqs">ИНН: 7710456789 • КПП: 771001001 • ОГРН: 1157746001234</div>
+      </div>
+      <select id="profileSwitcher" onchange="switchClientProfile()" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl px-3 py-2.5 cursor-pointer">
+        <option value="ООО «Поставщик-Агро № 1»|7710456789|771001001|1157746001234">Профиль: ООО «Поставщик-Агро № 1»</option>
+        <option value="ООО «Партнер-Зерно № 2»|7720987654|772001001|1167746005678">Профиль: ООО «Партнер-Зерно № 2»</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Навигационное меню внешнего сайта -->
+  <div class="bg-slate-950/80 border-t border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-5 flex flex-wrap gap-1 py-1.5">
+      <button id="navTab1" onclick="switchClientTab(1)" class="px-4 py-2 rounded-lg text-xs font-bold transition bg-blue-600 text-white">
+        🚛 Мониторинг рейсов и подача ТТН
+      </button>
+      <button id="navTab2" onclick="switchClientTab(2)" class="px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:bg-slate-800">
+        📄 Контракты, спецификации и квоты
+      </button>
+      <button id="navTab3" onclick="switchClientTab(3)" class="px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:bg-slate-800">
+        🔬 Лабораторные карточки и реестр отвесов
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ОСНОВНОЙ КОНТЕНТ ВНЕШНЕГО КАБИНЕТА КЛИЕНТА -->
+<main class="flex-1 max-w-7xl w-full mx-auto p-5 space-y-5">
+
+  <!-- Сводные показатели по контрагенту -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-blue-600">
+      <div class="text-xs font-semibold text-slate-500">Законтрактованный объем</div>
+      <div class="text-2xl font-black text-slate-900 mt-1 mono">2 300,00 т</div>
+      <div class="text-xs text-slate-500 mt-1">Активных спецификаций: <b class="text-slate-800">2</b></div>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-emerald-600">
+      <div class="text-xs font-semibold text-slate-500">Принято на терминале (Зачетный вес)</div>
+      <div class="text-2xl font-black text-emerald-700 mt-1 mono" id="kpiTotalAccepted">965,25 т</div>
+      <div class="text-xs text-emerald-600 font-semibold mt-1">За сегодня: +195 450 кг (3 ТС)</div>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-amber-500">
+      <div class="text-xs font-semibold text-slate-500">Автотранспорт на территории</div>
+      <div class="text-2xl font-black text-slate-900 mt-1 mono" id="kpiActiveCar">А 123 АА 77</div>
+      <div class="text-xs text-amber-700 font-medium mt-1" id="kpiActiveStage">Статус: Взвешивание ТАРЫ (Выезд)</div>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-indigo-600">
+      <div class="text-xs font-semibold text-slate-500">Среднее время обработки рейса</div>
+      <div class="text-2xl font-black text-slate-900 mt-1">36 мин</div>
+      <div class="text-xs text-slate-500 mt-1">Регламент терминала: до 45 мин</div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       ВКЛАДКА 1: МОНИТОРИНГ РЕЙСОВ И ОФОРМЛЕНИЕ ЗАЯВКИ НА ТРАНСПОРТ (ТТН)
+       ========================================================================= -->
+  <section id="clientView1" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+    <!-- Левая колонка: Регистрация новой ТТН на поставку -->
+    <div class="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5">
+      <div class="border-b border-slate-100 pb-3">
+        <h2 class="text-base font-extrabold text-slate-900">Регистрация транспортной накладной</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Заявка на пропуск автомобиля и бронирование тайм-слота выгрузки</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ИНН поставщика</label>
+          <input id="formInn" type="text" value="7710456789" readonly class="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-xs mono text-slate-700 font-semibold">
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">КПП поставщика</label>
+          <input id="formKpp" type="text" value="771001001" readonly class="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-xs mono text-slate-700 font-semibold">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Договор и спецификация поставки</label>
+        <select id="formSpec" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-medium focus:border-blue-600 outline-none">
+          <option value="Кукуруза 3 класс|СП-0142 от 28.08.2025">Договор № ЗТ-00045 • Спец. № СП-0142 (Кукуруза 3 кл.)</option>
+          <option value="Пшеница 2 класс|СП-0138 от 20.08.2025">Договор № ЗТ-00048 • Спец. № СП-0138 (Пшеница 2 кл.)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Пункт разгрузки (Элеватор назначения)</label>
+        <select id="formTerminal" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-medium focus:border-blue-600 outline-none">
+          <option value="Терминал № 1 (Портовый элеватор)">Терминал № 1 (Портовый элеватор — прямая поставка)</option>
+          <option value="Элеватор № 2 (Линейный элеватор)">Элеватор № 2 (Линейный элеватор — накопление партии)</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Гос. номер тягача</label>
+          <input id="formPlate" type="text" value="К 880 ММ 77" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs mono text-slate-900 font-bold">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Прицеп</label>
+          <input id="formTrailer" type="text" value="АВ 4412 77" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs mono text-slate-900">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ФИО водителя</label>
+          <input id="formDriver" type="text" value="Соколов Д.А." class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Водительское удост.</label>
+          <input id="formLicense" type="text" value="77 22 451092" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs mono text-slate-900">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Номер ТТН отправителя</label>
+          <input id="formTtn" type="text" value="44950988" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs mono text-slate-900 font-semibold">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Масса Нетто по ТТН, кг</label>
+          <input id="formWeight" type="number" value="64800" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs mono text-slate-900 font-bold">
+        </div>
+      </div>
+
+      <button onclick="submitSupplierTtn()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl transition shadow-sm">
+        Оформить электронную ТТН и забронировать слот въезда
+      </button>
+    </div>
+
+    <!-- Правая колонка: Онлайн-трекинг выбранного автомобиля и таблица всех рейсов -->
+    <div class="lg:col-span-8 space-y-5">
+
+      <!-- Карточка отслеживания этапов прохождения терминала -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 mb-4">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600">Статус прохождения контрольных точек терминала</span>
+            <h3 class="text-base font-extrabold text-slate-900 mt-0.5" id="trackerCarHeader">
+              Автомобиль А 123 АА 77 (Прицеп АЕ 1092 77) • Водитель: Иванов И.И. • ТТН №44950772
+            </h3>
+          </div>
+          <button onclick="openPassModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-3.5 py-2 rounded-xl transition">
+            🖨️ Печать электронного пропуска / Акта
+          </button>
+        </div>
+
+        <!-- Визуальная шкала прохождения с автомобилем -->
+        <div class="relative h-12 bg-slate-100 border border-slate-200 rounded-xl my-5 mx-2">
+          <div id="clientTrackFill" class="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-500/25 to-emerald-500/35 rounded-xl transition-all duration-700" style="width:92%;"></div>
+          <div id="clientMiniTruck" class="absolute -top-3.5 transition-all duration-700" style="left:90%; transform:translateX(-50%);">
+            <svg width="68" height="32" viewBox="0 0 68 32">
+              <rect x="2" y="4" width="42" height="18" rx="3" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="1.5"/>
+              <path d="M5 4 Q23 -2 41 4 Z" fill="#f59e0b"/>
+              <path d="M46 8 L60 8 L64 15 L64 22 L46 22 Z" fill="#334155"/>
+              <circle cx="13" cy="24" r="5" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+              <circle cx="34" cy="24" r="5" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+              <circle cx="55" cy="24" r="5" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 6 контрольных точек технологического процесса -->
+        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
+          <div onclick="setClientTrackStage(1)" id="clStep1" class="cursor-pointer p-2.5 rounded-xl border border-emerald-300 bg-emerald-50/70 transition">
+            <div class="text-[10px] font-extrabold text-emerald-700">1. НАКОПИТЕЛЬ</div>
+            <div class="text-xs font-bold text-slate-900 mt-0.5">Слот очереди № 1</div>
+            <div class="text-[10px] text-slate-500 mono">11:45</div>
+          </div>
+          <div onclick="setClientTrackStage(2)" id="clStep2" class="cursor-pointer p-2.5 rounded-xl border border-emerald-300 bg-emerald-50/70 transition">
+            <div class="text-[10px] font-extrabold text-emerald-700">2. ПОСТ КПП № 1</div>
+            <div class="text-xs font-bold text-slate-900 mt-0.5">Допуск разрешен</div>
+            <div class="text-[10px] text-slate-500 mono">11:58</div>
+          </div>
+          <div onclick="setClientTrackStage(3)" id="clStep3" class="cursor-pointer p-2.5 rounded-xl border border-emerald-300 bg-emerald-50/70 transition">
+            <div class="text-[10px] font-extrabold text-emerald-700">3. ЛАБОРАТОРИЯ</div>
+            <div class="text-xs font-bold text-slate-900 mt-0.5">Влажн. 14,2% (Норма)</div>
+            <div class="text-[10px] text-slate-500 mono">12:04</div>
+          </div>
+          <div onclick="setClientTrackStage(4)" id="clStep4" class="cursor-pointer p-2.5 rounded-xl border border-emerald-300 bg-emerald-50/70 transition">
+            <div class="text-[10px] font-extrabold text-emerald-700">4. ВЕСОВАЯ (ВЪЕЗД)</div>
+            <div class="text-xs font-bold text-slate-900 mt-0.5 mono">Брутто: 86 150 кг</div>
+            <div class="text-[10px] text-slate-500 mono">12:10</div>
+          </div>
+          <div onclick="setClientTrackStage(5)" id="clStep5" class="cursor-pointer p-2.5 rounded-xl border border-emerald-300 bg-emerald-50/70 transition">
+            <div class="text-[10px] font-extrabold text-emerald-700">5. ВЫГРУЗКА</div>
+            <div class="text-xs font-bold text-slate-900 mt-0.5">Силос № 3</div>
+            <div class="text-[10px] text-slate-500 mono">12:25</div>
+          </div>
+          <div onclick="setClientTrackStage(6)" id="clStep6" class="cursor-pointer p-2.5 rounded-xl border-2 border-blue-600 bg-blue-50 transition">
+            <div class="text-[10px] font-extrabold text-blue-700">6. ВЕСОВАЯ (ВЫЕЗД)</div>
+            <div class="text-xs font-bold text-slate-900 mt-0.5 mono">Нетто: 65 250 кг</div>
+            <div class="text-[10px] text-blue-700 font-semibold mono">Завершено</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Таблица рейсов поставщика -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm overflow-x-auto">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Реестр поставок автотранспортом</h3>
+            <p class="text-xs text-slate-500">Выберите рейс в таблице для отображения детальной траектории и весовых данных</p>
+          </div>
+          <input id="searchCarInput" type="text" oninput="filterClientTable()" placeholder="Поиск по ГРЗ или № ТТН..." class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs">
+        </div>
+
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 text-slate-600 border-b border-slate-200">
+              <th class="p-3">Приемный акт</th>
+              <th class="p-3">Транспорт / Водитель</th>
+              <th class="p-3">Культура / ТТН</th>
+              <th class="p-3 mono">БРУТТО, кг</th>
+              <th class="p-3 mono">ТАРА, кг</th>
+              <th class="p-3 mono">НЕТТО, кг</th>
+              <th class="p-3">Качество (Лаб.)</th>
+              <th class="p-3">Текущий этап</th>
+            </tr>
+          </thead>
+          <tbody id="clientCarsTbody" class="divide-y divide-slate-200">
+            <tr onclick="selectClientCar(this, 'А 123 АА 77', 'АЕ 1092 77', 'Иванов И.И.', '44950772', 6)" class="car-item cursor-pointer bg-blue-50/60 hover:bg-slate-50 transition">
+              <td class="p-3 font-bold text-blue-700 mono">ПА-000125</td>
+              <td class="p-3"><b class="mono text-slate-900">А 123 АА 77</b><br><span class="text-[11px] text-slate-500">Иванов И.И.</span></td>
+              <td class="p-3">Кукуруза 3 кл.<br><span class="text-[11px] text-slate-500 mono">ТТН №44950772</span></td>
+              <td class="p-3 mono">86 150</td>
+              <td class="p-3 mono">20 900</td>
+              <td class="p-3 mono font-extrabold text-emerald-700">65 250</td>
+              <td class="p-3">Вл. 14,2% • Сор 1,8%</td>
+              <td class="p-3"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">Выгружен (Силос № 3)</span></td>
+            </tr>
+            <tr onclick="selectClientCar(this, 'В 456 ВВ 77', 'АК 3310 77', 'Петров П.П.', '44950810', 4)" class="car-item cursor-pointer hover:bg-slate-50 transition">
+              <td class="p-3 font-bold text-blue-700 mono">ПА-000126</td>
+              <td class="p-3"><b class="mono text-slate-900">В 456 ВВ 77</b><br><span class="text-[11px] text-slate-500">Петров П.П.</span></td>
+              <td class="p-3">Кукуруза 3 кл.<br><span class="text-[11px] text-slate-500 mono">ТТН №44950810</span></td>
+              <td class="p-3 mono">84 400</td>
+              <td class="p-3 mono text-slate-400">—</td>
+              <td class="p-3 mono text-slate-400">—</td>
+              <td class="p-3">Вл. 13,8% • Сор 1,5%</td>
+              <td class="p-3"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Взвешен БРУТТО → Силос № 3</span></td>
+            </tr>
+            <tr onclick="selectClientCar(this, 'Е 789 ЕЕ 77', 'ВМ 7721 77', 'Смирнов А.В.', '44950901', 3)" class="car-item cursor-pointer hover:bg-slate-50 transition">
+              <td class="p-3 font-bold text-blue-700 mono">ПА-000127</td>
+              <td class="p-3"><b class="mono text-slate-900">Е 789 ЕЕ 77</b><br><span class="text-[11px] text-slate-500">Смирнов А.В.</span></td>
+              <td class="p-3">Пшеница 2 кл.<br><span class="text-[11px] text-slate-500 mono">ТТН №44950901</span></td>
+              <td class="p-3 mono text-slate-400">—</td>
+              <td class="p-3 mono text-slate-400">—</td>
+              <td class="p-3 mono text-slate-400">—</td>
+              <td class="p-3">Отбор пробы (КПП)</td>
+              <td class="p-3"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">Лабораторный контроль</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ВКЛАДКА 2: КОНТРАКТЫ, СПЕЦИФИКАЦИИ И ИСПОЛНЕНИЕ КВОТ
+       ========================================================================= -->
+  <section id="clientView2" class="hidden space-y-4">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+      <h2 class="text-base font-extrabold text-slate-900 mb-1">Действующие договоры поставки и квоты приемки</h2>
+      <p class="text-xs text-slate-500 mb-4">Контроль выбранных объемов по спецификациям и условиям базиса поставки (CPT / EXW)</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="border border-slate-200 rounded-2xl p-4 space-y-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[11px] font-bold bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full">Спецификация № СП-0142</span>
+              <h3 class="text-sm font-bold text-slate-900 mt-1.5">Договор поставки № ЗТ-00045 от 28.08.2025</h3>
+              <p class="text-xs text-slate-500">Культура: <b>Кукуруза 3 класс (Урожай 2025)</b> • Базис: СРТ Терминал № 1</p>
+            </div>
+            <span class="text-xs font-extrabold text-emerald-700">Активен</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span>Объем по спецификации: <b>1 500,00 т</b></span>
+            <span>Принято по весовой: <b class="text-emerald-700">965,25 т (64,3%)</b></span>
+          </div>
+          <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+            <div class="bg-blue-600 h-full" style="width:64.3%;"></div>
+          </div>
+          <div class="flex justify-between text-[11px] text-slate-500 pt-1">
+            <span>Остаток к поставке: <b>534,75 т</b></span>
+            <span>Базовая влажность по договору: ≤ 14,0%</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl p-4 space-y-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[11px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full">Спецификация № СП-0138</span>
+              <h3 class="text-sm font-bold text-slate-900 mt-1.5">Договор поставки № ЗТ-00048 от 20.08.2025</h3>
+              <p class="text-xs text-slate-500">Культура: <b>Пшеница 2 класс (Урожай 2025)</b> • Базис: СРТ Элеватор № 2</p>
+            </div>
+            <span class="text-xs font-extrabold text-emerald-700">Активен</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span>Объем по спецификации: <b>800,00 т</b></span>
+            <span>Принято по весовой: <b class="text-emerald-700">612,00 т (76,5%)</b></span>
+          </div>
+          <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+            <div class="bg-emerald-600 h-full" style="width:76.5%;"></div>
+          </div>
+          <div class="flex justify-between text-[11px] text-slate-500 pt-1">
+            <span>Остаток к поставке: <b>188,00 т</b></span>
+            <span>Белок по договору: ≥ 12,5% • Натура: ≥ 760 г/л</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       ВКЛАДКА 3: ЛАБОРАТОРНЫЕ КАРТОЧКИ АНАЛИЗА И АКТЫ ВЗВЕШИВАНИЯ
+       ========================================================================= -->
+  <section id="clientView3" class="hidden space-y-4">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm overflow-x-auto">
+      <h2 class="text-base font-extrabold text-slate-900 mb-1">Результаты входного лабораторного контроля и весовые акты</h2>
+      <p class="text-xs text-slate-500 mb-4">Фактические показатели качества по принятым партиям и сопоставление с базисными нормами ГОСТ</p>
+
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 text-slate-600 border-b border-slate-200">
+            <th class="p-3">№ Карточки анализа</th>
+            <th class="p-3">Дата и время</th>
+            <th class="p-3">Автомобиль / ТТН</th>
+            <th class="p-3">Культура / Партия</th>
+            <th class="p-3">Влажность (Норма ≤14%)</th>
+            <th class="p-3">Сорная примесь (≤2%)</th>
+            <th class="p-3">Натура, г/л</th>
+            <th class="p-3">Масса Нетто, кг</th>
+            <th class="p-3">Заключение лаборатории</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          <tr>
+            <td class="p-3 font-bold text-blue-700 mono">ЛА-000125</td>
+            <td class="p-3 mono">31.08.2025 14:35</td>
+            <td class="p-3"><b>А 123 АА 77</b> (ТТН №44950772)</td>
+            <td class="p-3">Кукуруза 3 кл. (Партия 2025/08)</td>
+            <td class="p-3 font-bold text-amber-700">14,2% (+0,2%)</td>
+            <td class="p-3">1,8% (В норме)</td>
+            <td class="p-3 mono">720</td>
+            <td class="p-3 mono font-bold">65 250</td>
+            <td class="p-3"><span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">Соответствует (Силос № 3)</span></td>
+          </tr>
+          <tr>
+            <td class="p-3 font-bold text-blue-700 mono">ЛА-000124</td>
+            <td class="p-3 mono">31.08.2025 11:20</td>
+            <td class="p-3"><b>В 456 ВВ 77</b> (ТТН №44950810)</td>
+            <td class="p-3">Кукуруза 3 кл. (Партия 2025/08)</td>
+            <td class="p-3 font-bold text-emerald-700">13,8% (В норме)</td>
+            <td class="p-3">1,5% (В норме)</td>
+            <td class="p-3 mono">728</td>
+            <td class="p-3 mono font-bold">63 500</td>
+            <td class="p-3"><span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">Соответствует (Силос № 3)</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- МОДАЛЬНОЕ ОКНО ЭЛЕКТРОННОГО ПРОПУСКА И ВЕСОВОГО АКТА -->
+<div id="passModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+  <div class="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+    <div class="flex justify-between items-start border-b border-slate-200 pb-3">
+      <div>
+        <span class="text-[11px] font-bold text-blue-700 uppercase">Официальный выписной документ терминала</span>
+        <h3 class="text-base font-black text-slate-900 mt-0.5">Приемно-весовой акт № ПА-000125</h3>
+      </div>
+      <button onclick="closePassModal()" class="text-slate-400 hover:text-slate-700 text-sm font-bold px-2">✕</button>
+    </div>
+    <div class="text-xs space-y-2 text-slate-700">
+      <div class="flex justify-between border-b border-slate-100 pb-1"><span>Грузоотправитель (Поставщик):</span><b>ООО «Поставщик-Агро № 1» (ИНН 7710456789)</b></div>
+      <div class="flex justify-between border-b border-slate-100 pb-1"><span>Договор / Спецификация:</span><b>ЗТ-00045 / СП-0142 (Кукуруза 3 кл.)</b></div>
+      <div class="flex justify-between border-b border-slate-100 pb-1"><span>Транспортное средство / Водитель:</span><b class="mono">А 123 АА 77 / Иванов И.И.</b></div>
+      <div class="flex justify-between border-b border-slate-100 pb-1"><span>Масса БРУТТО (Автовесы № 1):</span><b class="mono">86 150 кг (31.08.2025 12:10)</b></div>
+      <div class="flex justify-between border-b border-slate-100 pb-1"><span>Масса ТАРЫ (Автовесы № 1):</span><b class="mono">20 900 кг (31.08.2025 14:35)</b></div>
+      <div class="flex justify-between border-b border-slate-100 pb-1 text-sm"><span class="font-bold">Чистая масса НЕТТО:</span><b class="mono text-emerald-700">65 250 кг</b></div>
+      <div class="flex justify-between pt-1"><span>Лабораторный контроль (ЛА-000125):</span><b>Влажность 14,2% • Сор 1,8% • Силос № 3</b></div>
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <button onclick="closePassModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2 rounded-xl">Закрыть</button>
+      <button onclick="closePassModal(); showClientToast('📄 Весовой акт № ПА-000125 сформирован для печати.');" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl">Скачать / Печать</button>
+    </div>
+  </div>
+</div>
+
+<!-- ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ НА САЙТЕ -->
+<div id="clientToast" class="fixed bottom-4 right-4 bg-slate-900 border-l-4 border-blue-500 text-white px-4 py-3 rounded-xl shadow-xl text-xs font-semibold hidden z-50 max-w-md"></div>
+
+<script>
+  function showClientToast(msg) {
+    const t = document.getElementById('clientToast');
+    t.innerHTML = msg;
+    t.classList.remove('hidden');
+    clearTimeout(window._clToast);
+    window._clToast = setTimeout(() => t.classList.add('hidden'), 4000);
+  }
+
+  function switchClientTab(num) {
+    for (let i = 1; i <= 3; i++) {
+      document.getElementById('clientView' + i).classList.toggle('hidden', i !== num);
+      const b = document.getElementById('navTab' + i);
+      if (i === num) {
+        b.className = 'px-4 py-2 rounded-lg text-xs font-bold transition bg-blue-600 text-white';
+      } else {
+        b.className = 'px-4 py-2 rounded-lg text-xs font-bold transition text-slate-300 hover:bg-slate-800';
+      }
+    }
+  }
+
+  function switchClientProfile() {
+    const [name, inn, kpp, ogrn] = document.getElementById('profileSwitcher').value.split('|');
+    document.getElementById('clientOrgTitle').textContent = name;
+    document.getElementById('clientOrgReqs').textContent = `ИНН: ${inn} • КПП: ${kpp} • ОГРН: ${ogrn}`;
+    document.getElementById('formInn').value = inn;
+    document.getElementById('formKpp').value = kpp;
+    showClientToast(`🏢 Переключено юридическое лицо: <b>${name}</b> (ИНН ${inn})`);
+  }
+
+  function setClientTrackStage(step) {
+    const coords = [8, 25, 42, 60, 76, 90];
+    document.getElementById('clientMiniTruck').style.left = coords[step - 1] + '%';
+    document.getElementById('clientTrackFill').style.width = coords[step - 1] + '%';
+    const stageNames = [
+      'Статус: Ожидание на накопительной площадке (Слот № 1)',
+      'Статус: Прохождение КПП № 1 (Допуск разрешен)',
+      'Статус: Лабораторный контроль (Отбор проб)',
+      'Статус: Взвешивание БРУТТО (86 150 кг)',
+      'Статус: Выгрузка на эстакаде (Силос № 3)',
+      'Статус: Взвешивание ТАРЫ завершено (Нетто 65 250 кг)'
+    ];
+    document.getElementById('kpiActiveStage').textContent = stageNames[step - 1];
+
+    for (let i = 1; i <= 6; i++) {
+      const el = document.getElementById('clStep' + i);
+      if (i < step) {
+        el.className = 'cursor-pointer p-2.5 rounded-xl border border-emerald-300 bg-emerald-50/70 transition';
+      } else if (i === step) {
+        el.className = 'cursor-pointer p-2.5 rounded-xl border-2 border-blue-600 bg-blue-50 transition shadow-sm';
+      } else {
+        el.className = 'cursor-pointer p-2.5 rounded-xl border border-slate-200 bg-slate-50 opacity-60 transition';
+      }
+    }
+  }
+
+  function selectClientCar(tr, plate, trailer, driver, ttn, stage) {
+    document.querySelectorAll('.car-item').forEach(r => r.classList.remove('bg-blue-50/60'));
+    tr.classList.add('bg-blue-50/60');
+    document.getElementById('trackerCarHeader').textContent =
+      `Автомобиль ${plate} (Прицеп ${trailer}) • Водитель: ${driver} • ТТН №${ttn}`;
+    document.getElementById('kpiActiveCar').textContent = plate;
+    setClientTrackStage(stage);
+  }
+
+  function submitSupplierTtn() {
+    const plate = document.getElementById('formPlate').value.trim() || 'К 880 ММ 77';
+    const trailer = document.getElementById('formTrailer').value.trim() || 'АВ 4412 77';
+    const driver = document.getElementById('formDriver').value.trim() || 'Соколов Д.А.';
+    const ttn = document.getElementById('formTtn').value.trim() || '44950988';
+    const weight = document.getElementById('formWeight').value.trim() || '64800';
+    const crop = document.getElementById('formSpec').value.split('|')[0];
+
+    const tbody = document.getElementById('clientCarsTbody');
+    const tr = document.createElement('tr');
+    tr.className = 'car-item cursor-pointer bg-blue-50/60 hover:bg-slate-50 transition';
+    tr.onclick = () => selectClientCar(tr, plate, trailer, driver, ttn, 1);
+    tr.innerHTML = `
+      <td class="p-3 font-bold text-blue-700 mono">ПА-000128</td>
+      <td class="p-3"><b class="mono text-slate-900">${plate}</b><br><span class="text-[11px] text-slate-500">${driver}</span></td>
+      <td class="p-3">${crop}<br><span class="text-[11px] text-slate-500 mono">ТТН №${ttn} (${weight} кг)</span></td>
+      <td class="p-3 mono text-slate-400">—</td>
+      <td class="p-3 mono text-slate-400">—</td>
+      <td class="p-3 mono text-slate-400">—</td>
+      <td class="p-3">Ожидает заезда</td>
+      <td class="p-3"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">Назначен слот № 4</span></td>
+    `;
+    document.querySelectorAll('.car-item').forEach(r => r.classList.remove('bg-blue-50/60'));
+    tbody.prepend(tr);
+    selectClientCar(tr, plate, trailer, driver, ttn, 1);
+    showClientToast(`✅ Электронная ТТН №${ttn} зарегистрирована. Автомобилю <b>${plate}</b> назначен тайм-слот № 4.`);
+  }
+
+  function filterClientTable() {
+    const q = document.getElementById('searchCarInput').value.toLowerCase();
+    document.querySelectorAll('#clientCarsTbody tr').forEach(tr => {
+      tr.style.display = tr.textContent.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+    });
+  }
+
+  function openPassModal() {
+    const m = document.getElementById('passModal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+  }
+
+  function closePassModal() {
+    const m = document.getElementById('passModal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+  }
+</script>
+</body>
+</html>
